@@ -1,0 +1,52 @@
+services:
+    kgm.entity_listener:
+        class: KGMBundle\EntityListener
+        tags:
+             - { name: 'kgm.entity_listener' }
+             - { name: 'doctrine.event_listener', event: 'postLoad' }
+             - { name: 'doctrine.event_listener', event: 'loadClassMetadata' }
+        arguments:
+             - service_container: @service_container
+
+    twig.extension.kgm:
+        class: KGMBundle\Twig\Extension\MainExtension
+        tags:
+             - { name: 'twig.extension' }
+        arguments:
+             - loader: @twig.loader
+               service_container: @service_container
+               filter_container: OszkarBundle\Twig\TwigFilterContainer
+               function_container: OszkarBundle\Twig\TwigFunctionContainer
+               parser_container: OszkarBundle\Twig\TwigParserContainer
+    
+    kernel.listener:
+        class: KGMBundle\KernelListener
+        tags:
+             - { name: 'kernel.listener' }
+             - { name: 'kernel.event_listener', event: 'kernel.load', method: 'wireServices' }
+        arguments:
+             - service_container: @service_container
+
+    kernel.listener.exceptionlistener:
+        class: KGMBundle\ExceptionListener
+        tags:
+             - { name: 'kernel.listener.exceptionlistener' }
+             - { name: 'kernel.event_listener', event: 'kernel.exception', method: 'onKernelException' }
+        arguments:
+             - service_container: @service_container
+
+    form.type_extension.fieldextended:
+        class: KGMBundle\Form\Extension\FieldTypeExtendedExtension
+        tags:
+             - { name: 'form.type_extension.fieldextended' }
+             - { name: 'form.type_extension', alias: 'field' }
+
+    kgm.form.bitfield_type:
+        class: KGMBundle\Form\BitFieldType
+        tags:
+             - { name: 'form.type', alias: 'bitfield' }
+
+    kgm.form.taxfield_type:
+        class: KGMBundle\Form\TaxFieldType
+        tags:
+             - { name: 'form.type', alias: 'taxfield' }
