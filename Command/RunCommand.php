@@ -98,9 +98,9 @@ abstract class RunCommand extends ContainerAwareCommand
 	 * @param \Symfony\Component\Console\Input\InputInterface   $input  Input interface
 	 * @param \Symfony\Component\Console\Output\OutputInterface $output Output interface
 	 *
-	 * @throws \KGMBundle\Exception\Cron\CronRunErrorException When cron controller returns false value
+	 * @throws \KGMBundle\Exception\Cron\CronRunErrorException            When cron controller returns false value
 	 * @throws \KGMBundle\Exception\Controller\MissingControllerException When controller not found
-	 * @throws \KGMBundle\Exception\Controller\MissingActionException When controller action not found
+	 * @throws \KGMBundle\Exception\Controller\MissingActionException     When controller action not found
 	 *
 	 * @access protected
 	 * @link {controllerObject}
@@ -109,6 +109,10 @@ abstract class RunCommand extends ContainerAwareCommand
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
 		$params = $this->initParams($input);
+		
+		if (!$this->shouldRun($params)) {
+			return;
+		}
 		
 		$this->controllerObject = new $this->controllerClass($this->getContainer());
 		
@@ -376,6 +380,31 @@ abstract class RunCommand extends ContainerAwareCommand
 			unset($params[$renderKey]);
 			
 			return false;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * determines, if command should run on current server
+	 * no render if [SHOULD] found in param array
+	 *
+	 * @param array &$params Parameters
+	 *
+	 * @return bool True if should run
+	 *
+	 * @access protected
+	 */
+	protected function shouldRun(&$params)
+	{
+		if (($renderKey = array_search('[SHOULD]', $params)) !== false) {
+			$should = ($params[$renderKey + 1] == \GlobalFunction::linuxHostname());
+			if ($should) {
+				unset($params[$renderKey]);
+				unset($params[$renderKey + 1]);
+			}
+			
+			return $should;
 		}
 		
 		return true;
